@@ -586,13 +586,37 @@
                 const relativeVelocityY = state.vy - (otherState.vy || 0);
                 
                 const impulse = 3.0 * (relativeVelocityX * nx + relativeVelocityY * ny);
+                // 限制最大速度
+                const MAX_SPEED = 3;
                 
                 // 计算碰撞后的速度
-                state.vx = (otherState.vx || 0) + (relativeVelocityX - impulse * nx) * 1.2;
-                state.vy = (otherState.vy || 0) + (relativeVelocityY - impulse * ny) * 1.2;
+                let newStateVx = (otherState.vx || 0) + (relativeVelocityX - impulse * nx) * 1.2;
+                let newStateVy = (otherState.vy || 0) + (relativeVelocityY - impulse * ny) * 1.2;
+                let newOtherStateVx = state.vx - (relativeVelocityX - impulse * nx) * 1.2;
+                let newOtherStateVy = state.vy - (relativeVelocityY - impulse * ny) * 1.2;
+                if (Math.abs(newStateVx) > MAX_SPEED) {
+                    newStateVx = newStateVx > 0 ? MAX_SPEED : -MAX_SPEED;
+                }
+                if (Math.abs(newStateVy) > MAX_SPEED) {
+                    newStateVy = newStateVy > 0 ? MAX_SPEED : -MAX_SPEED;
+                }
+                if (Math.abs(newOtherStateVx) > MAX_SPEED) {
+                    newOtherStateVx = newOtherStateVx > 0 ? MAX_SPEED : -MAX_SPEED;
+                }
+                if (Math.abs(newOtherStateVy) > MAX_SPEED) {
+                    newOtherStateVy = newOtherStateVy > 0 ? MAX_SPEED : -MAX_SPEED;
+                }
+                console.log('newStateVx=' + newStateVx);
+                console.log('newOtherStateVx=' + newOtherStateVx);
                 
-                // 限制最大速度
-                const MAX_SPEED = 8.0;
+                // 更新两个小球的速度
+                state.vx = newStateVx;
+                state.vy = newStateVy;
+                if (otherState.vx !== undefined) {
+                    otherState.vx = newOtherStateVx;
+                    otherState.vy = newOtherStateVy;
+                }
+                
                 const currentSpeed = Math.sqrt(state.vx * state.vx + state.vy * state.vy);
                 if (currentSpeed > MAX_SPEED) {
                     const ratio = MAX_SPEED / currentSpeed;
