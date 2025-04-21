@@ -46,14 +46,14 @@
         }
         /* 大球样式 */
         .big-ball {
-            width: 120px;
-            height: 120px;
+            width: 100px;
+            height: 100px;
             background: linear-gradient(45deg, #4ecdc4, #45b7af);
         }
         /* 普通小球样式 */
         .small-ball {
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
             display: flex;
             align-items: center;
@@ -64,8 +64,8 @@
         }
         /* 特殊小球样式 */
         .special-ball {
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(45deg, #9b59b6, #8e44ad);
             display: flex;
             align-items: center;
@@ -93,6 +93,27 @@
         button:hover {
             background: #45a049;
         }
+        /* 删除球输入框样式 */
+        .delete-ball {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .delete-ball input {
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100px;
+        }
+        .delete-ball button {
+            background: #f44336;
+        }
+        .delete-ball button:hover {
+            background: #d32f2f;
+        }
     </style>
 </head>
 <body>
@@ -110,9 +131,13 @@
         <button id="addRightBigBall">添加右侧大球</button>
         <button id="moveDividerLeft">分隔线左移</button>
         <button id="moveDividerRight">分隔线右移</button>
-        <!-- <button id="removeSmallestBall">移除最小球</button> -->
         <button id="addLeftSpecialBall">添加左侧特殊球</button>
         <button id="addRightSpecialBall">添加右侧特殊球</button>
+    </div>
+    <!-- 删除球区域 -->
+    <div class="delete-ball">
+        <input type="text" id="ballUid" placeholder="输入球ID">
+        <button id="deleteBall">删除球</button>
     </div>
 
     <script>
@@ -139,6 +164,7 @@
                 
                 const ball = document.createElement('div');
                 ball.className = 'ball big-ball';
+                ball.setAttribute('data-uid', `big-${this.nextBallIndex}`);
                 this.container.appendChild(ball);
                 
                 // 设置大球初始位置在容器中心
@@ -147,12 +173,15 @@
                 
                 this.bigBall = {
                     element: ball,
-                    radius: 60,
+                    uid: `big-${this.nextBallIndex}`,
+                    radius: 50,
                     x: centerX,
                     y: centerY,
-                    vx: (Math.random() - 0.5) * 4, // 随机初始速度
-                    vy: (Math.random() - 0.5) * 4
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2
                 };
+                
+                this.nextBallIndex++;
             }
 
             // 更新大球位置和状态
@@ -167,30 +196,30 @@
                 const boundaryMargin = 80;
                 if (this.bigBall.x - this.bigBall.radius < boundaryMargin) {
                     this.bigBall.x = this.bigBall.radius + boundaryMargin;
-                    this.bigBall.vx *= -0.8; // 碰撞后速度衰减
+                    this.bigBall.vx *= -0.5; // 降低边界碰撞反弹系数
                 } else if (this.bigBall.x + this.bigBall.radius > this.container.clientWidth - boundaryMargin) {
                     this.bigBall.x = this.container.clientWidth - this.bigBall.radius - boundaryMargin;
-                    this.bigBall.vx *= -0.8;
+                    this.bigBall.vx *= -0.5;
                 }
 
                 if (this.bigBall.y - this.bigBall.radius < boundaryMargin) {
                     this.bigBall.y = this.bigBall.radius + boundaryMargin;
-                    this.bigBall.vy *= -0.8;
+                    this.bigBall.vy *= -0.5;
                 } else if (this.bigBall.y + this.bigBall.radius > this.container.clientHeight - boundaryMargin) {
                     this.bigBall.y = this.container.clientHeight - this.bigBall.radius - boundaryMargin;
-                    this.bigBall.vy *= -0.8;
+                    this.bigBall.vy *= -0.5;
                 }
 
                 // 应用摩擦力
-                this.bigBall.vx *= 0.995;
-                this.bigBall.vy *= 0.995;
+                this.bigBall.vx *= 0.99; // 增加摩擦力
+                this.bigBall.vy *= 0.99;
 
                 // 如果速度太小，给一个小的随机加速度
-                if (Math.abs(this.bigBall.vx) < 0.5) {
-                    this.bigBall.vx += (Math.random() - 0.5) * 0.5;
+                if (Math.abs(this.bigBall.vx) < 0.3) { // 降低最小速度阈值
+                    this.bigBall.vx += (Math.random() - 0.5) * 0.3; // 降低随机加速度
                 }
-                if (Math.abs(this.bigBall.vy) < 0.5) {
-                    this.bigBall.vy += (Math.random() - 0.5) * 0.5;
+                if (Math.abs(this.bigBall.vy) < 0.3) {
+                    this.bigBall.vy += (Math.random() - 0.5) * 0.3;
                 }
 
                 // 更新DOM元素位置
@@ -201,6 +230,7 @@
             addSmallBall() {
                 const ball = document.createElement('div');
                 ball.className = 'ball small-ball';
+                ball.setAttribute('data-uid', `small-${this.nextBallIndex}`);
                 const numberSpan = document.createElement('span');
                 numberSpan.textContent = this.nextBallIndex;
                 ball.appendChild(numberSpan);
@@ -208,18 +238,19 @@
                 
                 const containerWidth = this.container.clientWidth;
                 const containerHeight = this.container.clientHeight;
-                const radius = 20;
+                const radius = 30;
                 
                 // 创建小球状态对象
                 const state = {
                     element: ball,
+                    uid: `small-${this.nextBallIndex}`,
                     number: this.nextBallIndex,
                     radius: radius,
                     x: radius + Math.random() * (containerWidth - 2 * radius),
                     y: radius + Math.random() * (containerHeight - 2 * radius),
                     vx: (Math.random() - 0.5) * 2,
                     vy: (Math.random() - 0.5) * 2,
-                    targetDistance: 120 // 与大球的理想距离
+                    targetDistance: 60 // 与大球的理想距离减半
                 };
                 
                 this.smallBalls.push(state);
@@ -229,7 +260,7 @@
 
             // 更新小球位置和状态
             updateBallPosition(state) {
-                const MAX_SPEED = 5.0; // 最大速度限制
+                const MAX_SPEED = 3.0; // 最大速度限制
                 
                 if (this.bigBall) {
                     // 与大球的碰撞检测
@@ -253,8 +284,8 @@
                         
                         const impulse = 2.0 * (relativeVelocityX * nx + relativeVelocityY * ny);
                         
-                        state.vx = this.bigBall.vx + (relativeVelocityX - impulse * nx) * 0.8;
-                        state.vy = this.bigBall.vy + (relativeVelocityY - impulse * ny) * 0.8;
+                        state.vx = this.bigBall.vx + (relativeVelocityX - impulse * nx) * 0.5; // 降低反弹系数
+                        state.vy = this.bigBall.vy + (relativeVelocityY - impulse * ny) * 0.5;
                     } else {
                         // 有大球时的运动逻辑
                         const targetDistance = state.targetDistance;
@@ -314,18 +345,18 @@
                 
                 if (state.x - radius < 0) {
                     state.x = radius;
-                    state.vx *= -0.8;
+                    state.vx *= -0.5; // 降低边界碰撞反弹系数
                 } else if (state.x + radius > container.clientWidth) {
                     state.x = container.clientWidth - radius;
-                    state.vx *= -0.8;
+                    state.vx *= -0.5;
                 }
                 
                 if (state.y - radius < 0) {
                     state.y = radius;
-                    state.vy *= -0.8;
+                    state.vy *= -0.5;
                 } else if (state.y + radius > container.clientHeight) {
                     state.y = container.clientHeight - radius;
-                    state.vy *= -0.8;
+                    state.vy *= -0.5;
                 }
             }
 
@@ -348,10 +379,10 @@
                         
                         const impulse = 2.0 * (relativeVelocityX * nx + relativeVelocityY * ny) / 2;
                         
-                        state.vx -= impulse * nx;
-                        state.vy -= impulse * ny;
-                        otherState.vx += impulse * nx;
-                        otherState.vy += impulse * ny;
+                        state.vx -= impulse * nx * 0.5; // 降低反弹系数
+                        state.vy -= impulse * ny * 0.5;
+                        otherState.vx += impulse * nx * 0.5;
+                        otherState.vy += impulse * ny * 0.5;
                         
                         const overlap = minDistance - distance;
                         const separationX = (overlap * nx) / 2;
@@ -369,6 +400,7 @@
             addSpecialBall() {
                 const ball = document.createElement('div');
                 ball.className = 'ball special-ball';
+                ball.setAttribute('data-uid', `special-${this.nextBallIndex}`);
                 const numberSpan = document.createElement('span');
                 numberSpan.textContent = 'S' + this.nextBallIndex;
                 ball.appendChild(numberSpan);
@@ -376,45 +408,45 @@
                 
                 const containerWidth = this.container.clientWidth;
                 const containerHeight = this.container.clientHeight;
-                const radius = 20;
+                const radius = 30;
                 
-                // 随机选择圆形轨迹的中心点，确保不会与其他球重叠
-                let centerX, centerY;
+                // 创建特殊小球状态对象
+                let x, y;
                 let isValidPosition = false;
                 let attempts = 0;
                 const maxAttempts = 100;
+                const SAFE_DISTANCE = 50; // 与大球的安全距离减半
                 
                 while (!isValidPosition && attempts < maxAttempts) {
-                    centerX = radius + Math.random() * (containerWidth - 2 * radius);
-                    centerY = radius + Math.random() * (containerHeight - 2 * radius);
+                    x = radius + Math.random() * (containerWidth - 2 * radius);
+                    y = radius + Math.random() * (containerHeight - 2 * radius);
                     
-                    // 检查是否与其他球重叠
                     isValidPosition = true;
                     
-                    // 检查与大球的重叠
+                    // 检查与大球的安全距离
                     if (this.bigBall) {
-                        const dx = this.bigBall.x - centerX;
-                        const dy = this.bigBall.y - centerY;
+                        const dx = this.bigBall.x - x;
+                        const dy = this.bigBall.y - y;
                         const distance = Math.sqrt(dx * dx + dy * dy);
-                        if (distance < radius + this.bigBall.radius + 10) {
+                        if (distance < SAFE_DISTANCE + this.bigBall.radius + radius) {
                             isValidPosition = false;
                         }
                     }
                     
-                    // 检查与小球的重叠
+                    // 检查与普通小球的安全距离
                     this.smallBalls.forEach(otherState => {
-                        const dx = otherState.x - centerX;
-                        const dy = otherState.y - centerY;
+                        const dx = otherState.x - x;
+                        const dy = otherState.y - y;
                         const distance = Math.sqrt(dx * dx + dy * dy);
                         if (distance < radius + otherState.radius + 10) {
                             isValidPosition = false;
                         }
                     });
                     
-                    // 检查与其他特殊球的重叠
+                    // 检查与其他特殊小球的安全距离
                     this.specialBalls.forEach(otherState => {
-                        const dx = otherState.x - centerX;
-                        const dy = otherState.y - centerY;
+                        const dx = otherState.x - x;
+                        const dy = otherState.y - y;
                         const distance = Math.sqrt(dx * dx + dy * dy);
                         if (distance < radius + otherState.radius + 10) {
                             isValidPosition = false;
@@ -426,26 +458,19 @@
                 
                 // 如果找不到合适的位置，就放在随机位置
                 if (!isValidPosition) {
-                    centerX = radius + Math.random() * (containerWidth - 2 * radius);
-                    centerY = radius + Math.random() * (containerHeight - 2 * radius);
+                    x = radius + Math.random() * (containerWidth - 2 * radius);
+                    y = radius + Math.random() * (containerHeight - 2 * radius);
                 }
                 
-                // 创建特殊小球状态对象
                 const state = {
                     element: ball,
+                    uid: `special-${this.nextBallIndex}`,
                     number: this.nextBallIndex,
                     radius: radius,
-                    x: centerX,
-                    y: centerY,
-                    vx: 0,
-                    vy: 0,
-                    centerX: centerX - 30, // 圆心向左偏移30px
-                    centerY: centerY,
-                    orbitRadius: 20, // 圆形轨迹半径
-                    angle: Math.atan2(centerY - (centerY - 30), centerX - (centerX - 30)), // 计算初始角度
-                    angularSpeed: 0.02, // 角速度
-                    isInOrbit: true, // 是否在圆形轨迹上
-                    collisionTimer: null // 碰撞计时器
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2
                 };
                 
                 this.specialBalls.push(state);
@@ -454,69 +479,25 @@
 
             // 更新特殊小球位置和状态
             updateSpecialBall(state) {
-                if (state.isInOrbit) {
-                    // 圆形轨迹运动
-                    state.angle += state.angularSpeed;
-                    state.x = state.centerX + Math.cos(state.angle) * state.orbitRadius;
-                    state.y = state.centerY + Math.sin(state.angle) * state.orbitRadius;
-                    
-                    // 检查边界碰撞
-                    const radius = state.radius;
-                    const container = this.container;
-                    
-                    // 如果碰到左边界
-                    if (state.x - radius < 0) {
-                        state.x = radius;
-                        // 计算新的圆心位置，保持圆形轨迹
-                        state.centerX = state.x + state.orbitRadius;
-                        state.angle = Math.PI; // 设置角度为180度，从左边开始
-                    }
-                    // 如果碰到右边界
-                    else if (state.x + radius > container.clientWidth) {
-                        state.x = container.clientWidth - radius;
-                        // 计算新的圆心位置，保持圆形轨迹
-                        state.centerX = state.x - state.orbitRadius;
-                        state.angle = 0; // 设置角度为0度，从右边开始
-                    }
-                    
-                    // 如果碰到上边界
-                    if (state.y - radius < 0) {
-                        state.y = radius;
-                        // 计算新的圆心位置，保持圆形轨迹
-                        state.centerY = state.y + state.orbitRadius;
-                        state.angle = Math.PI / 2; // 设置角度为90度，从上方开始
-                    }
-                    // 如果碰到下边界
-                    else if (state.y + radius > container.clientHeight) {
-                        state.y = container.clientHeight - radius;
-                        // 计算新的圆心位置，保持圆形轨迹
-                        state.centerY = state.y - state.orbitRadius;
-                        state.angle = -Math.PI / 2; // 设置角度为-90度，从下方开始
-                    }
-                    
-                    // 更新DOM元素位置
-                    state.element.style.transform = `translate(${state.x - state.radius}px, ${state.y - state.radius}px)`;
-                } else {
-                    // 正常运动
-                    state.x += state.vx;
-                    state.y += state.vy;
-                    
-                    // 更新DOM元素位置
-                    state.element.style.transform = `translate(${state.x - state.radius}px, ${state.y - state.radius}px)`;
-                    
-                    // 应用摩擦力，但保持一定的运动
-                    state.vx *= 0.98;
-                    state.vy *= 0.98;
-                    
-                    // 如果速度太小，给一个小的随机加速度
-                    if (Math.abs(state.vx) < 0.5 && Math.abs(state.vy) < 0.5) {
-                        state.vx += (Math.random() - 0.5) * 0.5;
-                        state.vy += (Math.random() - 0.5) * 0.5;
-                    }
-                    
-                    // 检查边界碰撞
-                    this.checkBoundaryCollision(state);
+                // 正常运动
+                state.x += state.vx;
+                state.y += state.vy;
+                
+                // 更新DOM元素位置
+                state.element.style.transform = `translate(${state.x - state.radius}px, ${state.y - state.radius}px)`;
+                
+                // 应用摩擦力，但保持一定的运动
+                state.vx *= 0.98;
+                state.vy *= 0.98;
+                
+                // 如果速度太小，给一个小的随机加速度
+                if (Math.abs(state.vx) < 0.5 && Math.abs(state.vy) < 0.5) {
+                    state.vx += (Math.random() - 0.5) * 0.5;
+                    state.vy += (Math.random() - 0.5) * 0.5;
                 }
+                
+                // 检查边界碰撞
+                this.checkBoundaryCollision(state);
             }
 
             // 检查特殊小球的碰撞
@@ -570,14 +551,6 @@
 
             // 处理特殊小球的碰撞
             handleSpecialBallCollision(state, otherState, dx, dy, distance) {
-                // 清除之前的定时器
-                if (state.collisionTimer) {
-                    clearTimeout(state.collisionTimer);
-                }
-                
-                // 退出圆形轨迹
-                state.isInOrbit = false;
-                
                 // 计算碰撞响应
                 const nx = dx / distance;
                 const ny = dy / distance;
@@ -587,13 +560,15 @@
                 
                 const impulse = 3.0 * (relativeVelocityX * nx + relativeVelocityY * ny);
                 // 限制最大速度
-                const MAX_SPEED = 3;
+                const MAX_SPEED = 2; // 降低最大速度限制
                 
                 // 计算碰撞后的速度
-                let newStateVx = (otherState.vx || 0) + (relativeVelocityX - impulse * nx) * 1.2;
-                let newStateVy = (otherState.vy || 0) + (relativeVelocityY - impulse * ny) * 1.2;
-                let newOtherStateVx = state.vx - (relativeVelocityX - impulse * nx) * 1.2;
-                let newOtherStateVy = state.vy - (relativeVelocityY - impulse * ny) * 1.2;
+                let newStateVx = (otherState.vx || 0) + (relativeVelocityX - impulse * nx) * 0.5; // 降低反弹系数
+                let newStateVy = (otherState.vy || 0) + (relativeVelocityY - impulse * ny) * 0.5;
+                let newOtherStateVx = state.vx - (relativeVelocityX - impulse * nx) * 0.5;
+                let newOtherStateVy = state.vy - (relativeVelocityY - impulse * ny) * 0.5;
+                
+                // 限制最大速度
                 if (Math.abs(newStateVx) > MAX_SPEED) {
                     newStateVx = newStateVx > 0 ? MAX_SPEED : -MAX_SPEED;
                 }
@@ -606,8 +581,6 @@
                 if (Math.abs(newOtherStateVy) > MAX_SPEED) {
                     newOtherStateVy = newOtherStateVy > 0 ? MAX_SPEED : -MAX_SPEED;
                 }
-                console.log('newStateVx=' + newStateVx);
-                console.log('newOtherStateVx=' + newOtherStateVx);
                 
                 // 更新两个小球的速度
                 state.vx = newStateVx;
@@ -617,34 +590,41 @@
                     otherState.vy = newOtherStateVy;
                 }
                 
-                const currentSpeed = Math.sqrt(state.vx * state.vx + state.vy * state.vy);
-                if (currentSpeed > MAX_SPEED) {
-                    const ratio = MAX_SPEED / currentSpeed;
-                    state.vx *= ratio;
-                    state.vy *= ratio;
-                }
-                
                 // 将球推到不重叠的位置
                 const minDistance = state.radius + (otherState.radius || 0) + 10;
                 const overlap = minDistance - distance;
                 state.x += (overlap * nx) / 2;
                 state.y += (overlap * ny) / 2;
+            }
+
+            // 删除指定uid的球
+            deleteBall(uid) {
+                // 检查并删除大球
+                if (this.bigBall && this.bigBall.uid === uid) {
+                    this.container.removeChild(this.bigBall.element);
+                    this.bigBall = null;
+                    return true;
+                }
                 
-                // 设置1秒后回到圆形轨迹
-                state.collisionTimer = setTimeout(() => {
-                    if (!state.isInOrbit) {
-                        state.isInOrbit = true;
-                        // 将圆心设置为小球当前位置的左侧
-                        state.centerX = state.x - state.orbitRadius;
-                        state.centerY = state.y;
-                        // 设置初始角度为0，这样小球会从当前位置开始顺时针运动
-                        state.angle = 0;
-                        // 立即更新位置，确保平滑过渡
-                        state.x = state.centerX + Math.cos(state.angle) * state.orbitRadius;
-                        state.y = state.centerY + Math.sin(state.angle) * state.orbitRadius;
-                        state.element.style.transform = `translate(${state.x - state.radius}px, ${state.y - state.radius}px)`;
-                    }
-                }, 1000);
+                // 检查并删除普通小球
+                const smallBallIndex = this.smallBalls.findIndex(ball => ball.uid === uid);
+                if (smallBallIndex !== -1) {
+                    const ball = this.smallBalls[smallBallIndex];
+                    this.container.removeChild(ball.element);
+                    this.smallBalls.splice(smallBallIndex, 1);
+                    return true;
+                }
+                
+                // 检查并删除特殊小球
+                const specialBallIndex = this.specialBalls.findIndex(ball => ball.uid === uid);
+                if (specialBallIndex !== -1) {
+                    const ball = this.specialBalls[specialBallIndex];
+                    this.container.removeChild(ball.element);
+                    this.specialBalls.splice(specialBallIndex, 1);
+                    return true;
+                }
+                
+                return false;
             }
 
             // 动画循环
@@ -680,18 +660,18 @@
                 const radius = state.radius;
                 if (state.x - radius < 0) {
                     state.x = radius;
-                    state.vx *= -0.8;
+                    state.vx *= -0.5; // 降低边界碰撞反弹系数
                 } else if (state.x + radius > leftArea.clientWidth) {
                     state.x = leftArea.clientWidth - radius;
-                    state.vx *= -0.8;
+                    state.vx *= -0.5;
                 }
                 
                 if (state.y - radius < 0) {
                     state.y = radius;
-                    state.vy *= -0.8;
+                    state.vy *= -0.5;
                 } else if (state.y + radius > leftArea.clientHeight) {
                     state.y = leftArea.clientHeight - radius;
-                    state.vy *= -0.8;
+                    state.vy *= -0.5;
                 }
             };
 
@@ -700,18 +680,18 @@
                 const radius = state.radius;
                 if (state.x - radius < 0) {
                     state.x = radius;
-                    state.vx *= -0.8;
+                    state.vx *= -0.5;
                 } else if (state.x + radius > rightArea.clientWidth) {
                     state.x = rightArea.clientWidth - radius;
-                    state.vx *= -0.8;
+                    state.vx *= -0.5;
                 }
                 
                 if (state.y - radius < 0) {
                     state.y = radius;
-                    state.vy *= -0.8;
+                    state.vy *= -0.5;
                 } else if (state.y + radius > rightArea.clientHeight) {
                     state.y = rightArea.clientHeight - radius;
-                    state.vy *= -0.8;
+                    state.vy *= -0.5;
                 }
             };
         }
@@ -755,6 +735,25 @@
 
         document.getElementById('addRightSpecialBall').addEventListener('click', () => {
             rightSystem.addSpecialBall();
+        });
+
+        // 删除球按钮事件
+        document.getElementById('deleteBall').addEventListener('click', () => {
+            const uid = document.getElementById('ballUid').value.trim();
+            if (!uid) {
+                alert('请输入球ID');
+                return;
+            }
+            
+            let deleted = false;
+            deleted = leftSystem.deleteBall(uid) || deleted;
+            deleted = rightSystem.deleteBall(uid) || deleted;
+            
+            if (!deleted) {
+                alert('未找到指定ID的球');
+            } else {
+                document.getElementById('ballUid').value = '';
+            }
         });
     </script>
 </body>
