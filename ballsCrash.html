@@ -251,17 +251,30 @@
                 const containerHeight = this.container.clientHeight;
                 const radius = 30;
                 
+                // 将容器分成3x3的网格
+                const gridSize = 3;
+                const cellWidth = containerWidth / gridSize;
+                const cellHeight = containerHeight / gridSize;
+                
+                // 随机选择一个网格
+                const gridX = Math.floor(Math.random() * gridSize);
+                const gridY = Math.floor(Math.random() * gridSize);
+                
+                // 在选中的网格内随机生成位置
+                const x = radius + gridX * cellWidth + Math.random() * (cellWidth - 2 * radius);
+                const y = radius + gridY * cellHeight + Math.random() * (cellHeight - 2 * radius);
+                
                 // 创建小球状态对象
                 const state = {
                     element: ball,
                     uid: `small-${this.nextBallIndex}`,
                     number: this.nextBallIndex,
                     radius: radius,
-                    x: radius + Math.random() * (containerWidth - 2 * radius),
-                    y: radius + Math.random() * (containerHeight - 2 * radius),
+                    x: x,
+                    y: y,
                     vx: (Math.random() - 0.5) * 2,
                     vy: (Math.random() - 0.5) * 2,
-                    targetDistance: 100 // 与大球的理想距离设置为20像素
+                    targetDistance: 100 // 与大球的理想距离设置为100像素
                 };
                 
                 this.smallBalls.push(state);
