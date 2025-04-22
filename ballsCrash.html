@@ -159,12 +159,17 @@
             }
 
             // 创建大球
-            createBigBall() {
+            createBigBall(customContent = null) {
                 if (this.bigBall) return; // 如果已存在大球则不创建
                 
                 const ball = document.createElement('div');
                 ball.className = 'ball big-ball';
                 ball.setAttribute('data-uid', `big-${this.nextBallIndex}`);
+                
+                if (customContent) {
+                    ball.appendChild(customContent);
+                }
+                
                 this.container.appendChild(ball);
                 
                 // 设置大球初始位置在容器中心
@@ -227,13 +232,19 @@
             }
 
             // 添加普通小球
-            addSmallBall() {
+            addSmallBall(customContent = null) {
                 const ball = document.createElement('div');
                 ball.className = 'ball small-ball';
                 ball.setAttribute('data-uid', `small-${this.nextBallIndex}`);
-                const numberSpan = document.createElement('span');
-                numberSpan.textContent = this.nextBallIndex;
-                ball.appendChild(numberSpan);
+                
+                if (customContent) {
+                    ball.appendChild(customContent);
+                } else {
+                    const numberSpan = document.createElement('span');
+                    numberSpan.textContent = this.nextBallIndex;
+                    ball.appendChild(numberSpan);
+                }
+                
                 this.container.appendChild(ball);
                 
                 const containerWidth = this.container.clientWidth;
@@ -250,7 +261,7 @@
                     y: radius + Math.random() * (containerHeight - 2 * radius),
                     vx: (Math.random() - 0.5) * 2,
                     vy: (Math.random() - 0.5) * 2,
-                    targetDistance: 60 // 与大球的理想距离减半
+                    targetDistance: 100 // 与大球的理想距离设置为20像素
                 };
                 
                 this.smallBalls.push(state);
@@ -397,20 +408,26 @@
             }
 
             // 添加特殊小球
-            addSpecialBall() {
+            addSpecialBall(customContent = null) {
                 const ball = document.createElement('div');
                 ball.className = 'ball special-ball';
                 ball.setAttribute('data-uid', `special-${this.nextBallIndex}`);
-                const numberSpan = document.createElement('span');
-                numberSpan.textContent = 'S' + this.nextBallIndex;
-                ball.appendChild(numberSpan);
+                
+                if (customContent) {
+                    ball.appendChild(customContent);
+                } else {
+                    const numberSpan = document.createElement('span');
+                    numberSpan.textContent = 'S' + this.nextBallIndex;
+                    ball.appendChild(numberSpan);
+                }
+                
                 this.container.appendChild(ball);
                 
                 const containerWidth = this.container.clientWidth;
                 const containerHeight = this.container.clientHeight;
                 const radius = 30;
                 
-                // 创建特殊小球状态对象
+                // 随机选择圆形轨迹的中心点，确保不会与其他球重叠
                 let x, y;
                 let isValidPosition = false;
                 let attempts = 0;
@@ -507,8 +524,7 @@
                     const dx = this.bigBall.x - state.x;
                     const dy = this.bigBall.y - state.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-                    // 增加碰撞检测距离，使其大于大球和小球之间的吸引距离
-                    const minDistance = state.radius + this.bigBall.radius + 40; // 增加40px的安全距离
+                    const minDistance = state.radius + this.bigBall.radius + 20; // 只保留物理碰撞距离
                     
                     if (distance < minDistance) {
                         // 如果小球在大球内部，强制将其推出
@@ -735,6 +751,20 @@
 
         document.getElementById('addRightSpecialBall').addEventListener('click', () => {
             rightSystem.addSpecialBall();
+        });
+
+        // 示例：添加带自定义内容的球
+        document.getElementById('addLeftBall').addEventListener('click', () => {
+            const customContent = document.createElement('div');
+            customContent.style.width = '100%';
+            customContent.style.height = '100%';
+            customContent.style.display = 'flex';
+            customContent.style.alignItems = 'center';
+            customContent.style.justifyContent = 'center';
+            customContent.style.color = 'white';
+            customContent.style.fontWeight = 'bold';
+            customContent.textContent = '自定义';
+            leftSystem.addSmallBall(customContent);
         });
 
         // 删除球按钮事件
